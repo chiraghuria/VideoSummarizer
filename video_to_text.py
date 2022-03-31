@@ -7,12 +7,14 @@ from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize
 # Tokenizing Words
 from nltk.tokenize import word_tokenize
-from deepsegment import DeepSegment
+# from deepsegment import DeepSegment
+import speech_recognition as sr 
+import os 
+from pydub import AudioSegment
+from pydub.silence import split_on_silence
 
 
-
-
-
+r = sr.Recognizer()
 
 def clean(text):
     sample = text.split('**')
@@ -89,35 +91,61 @@ def summary(text):
     return summary
 
 
-
+def get_transcript(path):
+    sound = AudioSegment.from_wav(path)  
+    chunks = split_on_silence(sound,
+        min_silence_len = 500,
+        silence_thresh = sound.dBFS-14,
+        keep_silence=500,
+    )
+    folder_name = "audio-chunks"
+    if not os.path.isdir(folder_name):
+        os.mkdir(folder_name)
+    whole_text = ""
+    for i, audio_chunk in enumerate(chunks, start=1):
+        chunk_filename = os.path.join(folder_name, f"chunk{i}.wav")
+        audio_chunk.export(chunk_filename, format="wav")
+        with sr.AudioFile(chunk_filename) as source:
+            audio_listened = r.record(source)
+            try:
+                text = r.recognize_google(audio_listened)
+            except sr.UnknownValueError as e:
+                print("Error:", str(e))
+            else:
+                text = f"{text.capitalize()}. "
+                print(chunk_filename, ":", text)
+                whole_text += text
+    return whole_text
 
 def main():
     
-    # transcribed_audio_file_name = "transcribed_speech.wav"
-    # zoom_video_file_name = "resources/sample_interview.m4a"
-    # audioclip = AudioFileClip(zoom_video_file_name)
-    # audioclip.write_audiofile(transcribed_audio_file_name)
-    # with contextlib.closing(wave.open(transcribed_audio_file_name,'r')) as f:
-    #     frames = f.getnframes()
-    #     rate = f.getframerate()
-    #     duration = frames / float(rate)
-    # total_duration = math.ceil(duration / 60)
-    # r = sr.Recognizer()
-    # for i in range(0, total_duration):
-    #     with sr.AudioFile(transcribed_audio_file_name) as source:
-    #         audio = r.record(source, offset=i*60, duration=60)
-    #     f = open("transcription.txt", "a")
-    #     f.write(r.recognize_google(audio))
-    #     f.write(" ")
-    # f.close()
+    transcribed_audio_file_name = "transcribed_speech.wav"
+    zoom_video_file_name = "resources/MLKDream.mp3"
+    audioclip = AudioFileClip(zoom_video_file_name)
+    audioclip.write_audiofile(transcribed_audio_file_name)
+    with contextlib.closing(wave.open(transcribed_audio_file_name,'r')) as f:
+        frames = f.getnframes()
+        rate = f.getframerate()
+        duration = frames / float(rate)
+    total_duration = math.ceil(duration / 60)
+    r = sr.Recognizer()
 
-    with open('transcription.txt') as f:
-        lines = f.readlines()
-    print("LINES", lines)
-    segmenter = DeepSegment('en')
-    punctuated_lines = segmenter.segment(lines)
-    print("punctuated_lines", punctuated_lines)
-    summary_text = summary(lines)
+
+    transcript = get_transcript(transcribed_audio_file_name)
+    
+    # tr = "resources/MLKDream.mp3"
+    # transcript = get_large_audio_transcription(tr)
+
+    # print(transcript)
+    
+    
+    # with open('transcription.txt') as f:
+    #     lines = f.readlines()
+    # print("LINES", lines)
+    # segmenter = DeepSegment('en')
+    # punctuated_lines = segmenter.segment(lines)
+    # print("punctuated_lines", punctuated_lines)
+    summary_text = summary(transcript)
     print("\nModel Summary: ")
     summary_list = summary_text.split(". ")
     for sentence in summary_list:
