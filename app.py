@@ -20,7 +20,18 @@ st.set_page_config(
 
 st.title("Video transcript Summarizer!")
 
+def get_summary(text):
+    summarizer = pipeline('summarization')
 
+    num_iters = int(len(text)/1000)
+    summarized_text = []
+    for i in range(0, num_iters + 1):
+        start = 0
+        start = i * 1000
+        end = (i + 1) * 1000
+        out = summarizer(text[start:end])[0]['summary_text']
+        summarized_text.append(out)
+    return summarized_text
 
 with st.form(key="my_form", clear_on_submit=True):
     col1, col2 = st.columns(2)
@@ -46,20 +57,12 @@ with st.form(key="my_form", clear_on_submit=True):
           text = ""
           for i in transcript:
                 text += ' ' + i['text']
-
+          
+          
           st.write("Preparing your summary...")
           st.write("Transformer at work...")
-          summarizer = pipeline('summarization')
-
-          num_iters = int(len(text)/1000)
-          summarized_text = []
-          for i in range(0, num_iters + 1):
-            start = 0
-            start = i * 1000
-            end = (i + 1) * 1000
-            out = summarizer(text[start:end])[0]['summary_text']
-            summarized_text.append(out)
-
+          summarized_text = get_summary(text)
+          
           st.write("SUMMARY")
           st.write(str(summarized_text))
 
@@ -100,16 +103,7 @@ with st.form(key="my_form", clear_on_submit=True):
                     else:
                         text = f"{text.capitalize()}. "
                         whole_text += text
-            summarizer = pipeline('summarization')
-          
-            num_iters = int(len(whole_text)/1000)
-            summarized_text = []
-            for i in range(0, num_iters + 1):
-              start = 0
-              start = i * 1000
-              end = (i + 1) * 1000
-              out = summarizer(whole_text[start:end])[0]['summary_text']
-              summarized_text.append(out)
+            summarized_text = get_summary(whole_text)
             st.write("SUMMARY")
             st.write(str(summarized_text))
 
