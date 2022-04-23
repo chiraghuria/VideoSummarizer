@@ -5,3 +5,6 @@ pandas == 1.2.4
 keybert
 transformers
 youtube_transcript_api
+SpeechRecognition
+moviepy
+pydub
