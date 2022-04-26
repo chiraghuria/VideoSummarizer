@@ -8,3 +8,5 @@ youtube_transcript_api
 SpeechRecognition
 moviepy
 pydub
+gensim
+rouge-score

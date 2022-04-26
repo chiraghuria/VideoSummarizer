@@ -1,3 +1,4 @@
+from distutils.text_file import TextFile
 import streamlit as st
 import numpy as np
 from transformers import pipeline
@@ -11,18 +12,22 @@ from pydub import AudioSegment
 from pydub.silence import split_on_silence
 import io
 import os
+import docsim 
+from rouge_score import rouge_scorer
+
+
+
 
 st.set_page_config(
-    page_title="Video Transcript Summarizer",
-    page_icon="🎈",
+    page_title="VideoTLDR: Converting long videos to quick reads!",
+    page_icon="🚀",
     layout = "centered"
 )
 
-st.title("Video transcript Summarizer!")
+st.title("VideoTLDR: Converting long videos to quick reads!")
 
 def get_summary(text):
     summarizer = pipeline('summarization')
-
     num_iters = int(len(text)/1000)
     summarized_text = []
     for i in range(0, num_iters + 1):
@@ -33,6 +38,36 @@ def get_summary(text):
         summarized_text.append(out)
     return summarized_text
 
+def create_summary(get_summary, whole_text):
+    st.write("Preparing your summary...")
+    summarized_text = get_summary(whole_text)
+    st.write("Key Points")
+    summary_str = ""
+    summary_str += "Key Points \n"
+    global_summary = summarized_text
+    for point in summarized_text:
+        st.write(str(point))
+        summary_str += point
+    return summary_str
+    
+
+
+def summary_download(summarized_text):
+    with open("Summary.txt", "w") as text_file:
+        summary_str = ""
+        summary_str += "Key Points \n"
+        for point in summarized_text:
+            summary_str += point
+        text_file.write(summary_str)
+        return TextFile
+
+def show_similarity(final_summary, whole_text):
+    scorer = rouge_scorer.RougeScorer(['rouge3'], use_stemmer=True)
+    scores = scorer.score(final_summary,whole_text)
+    st.success("The summary is " + str(round(float(scores["rouge3"].recall)*100,2)) + "\% similar to the video.")
+    return round(float(scores["rouge3"].recall)*100,2)
+     
+                
 with st.form(key="my_form", clear_on_submit=True):
     col1, col2 = st.columns(2)
     
@@ -52,19 +87,16 @@ with st.form(key="my_form", clear_on_submit=True):
     if video_type=="YouTube" and youtube_video is not None:
         submitted = st.form_submit_button(label="Summarize")
         if submitted:
-          video_id = youtube_video.split("=")[1]
-          transcript = YouTubeTranscriptApi.get_transcript(video_id)
-          text = ""
-          for i in transcript:
+            video_id = youtube_video.split("=")[1]
+            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+            text = ""
+            for i in transcript:
                 text += ' ' + i['text']
-          
-          
-          st.write("Preparing your summary...")
-          st.write("Transformer at work...")
-          summarized_text = get_summary(text)
-          
-          st.write("SUMMARY")
-          st.write(str(summarized_text))
+            
+            
+            final_summary = create_summary(get_summary, text)  
+            show_similarity(final_summary, text)  
+
 
     if video_type=="Video Upload" and uploaded_video is not None:
         submitted = st.form_submit_button(label="Summarize")
@@ -103,7 +135,10 @@ with st.form(key="my_form", clear_on_submit=True):
                     else:
                         text = f"{text.capitalize()}. "
                         whole_text += text
-            summarized_text = get_summary(whole_text)
-            st.write("SUMMARY")
-            st.write(str(summarized_text))
+            final_summary = create_summary(get_summary, whole_text)
+            show_similarity(final_summary, whole_text)
+  
+              
+# st.button('Download summary', key='button_add_project',
+#           on_click=summary_download, args=(summarized_text, ))            
 
