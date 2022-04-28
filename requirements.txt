@@ -1,6 +1,6 @@
 seaborn
 matplotlib
-streamlit == 0.87
+streamlit
 pandas == 1.2.4
 keybert
 transformers
@@ -10,3 +10,5 @@ moviepy
 pydub
 gensim
 rouge-score
+youtube-search-python
+streamlit_option_menu
