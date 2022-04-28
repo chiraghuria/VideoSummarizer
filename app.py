@@ -1,6 +1,6 @@
 from streamlit_option_menu import option_menu
 
-from src import summarize_page, utils
+from src import summarize_page, utils, home, explore
 import streamlit as st
 from PIL import Image
 
@@ -35,7 +35,10 @@ def setup_streamlit():
         unsafe_allow_html=True,
     )
     apps = {
-        "summarize_page": {"title": "Summarize your video", "icon": "house"}
+        "home": {"title": "Home", "icon": "house"},
+        "explore": {"title": "Explore", "icon": "list-task"},
+        "summarize_page": {"title": "Summarize Video", "icon": "cloud-upload"}
+
         # "upload_transcript": {"title": "Upload Transcript", "icon": "cloud-upload"},
     }
 
@@ -62,9 +65,14 @@ def setup_streamlit():
 def main():
     selected = setup_streamlit()
     try:
-        if selected.lower() == "summarize_page":
-            summarize_page.app()
+        if selected.lower() == "home":
+            home.app()
             utils.clear_all()
+        elif selected.lower() == "explore":
+            explore.app()    
+        elif selected.lower() == "summarize video":
+            summarize_page.app()
+
     except Exception as e:
         print(f"{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e}")
 

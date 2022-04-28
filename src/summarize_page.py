@@ -16,7 +16,7 @@ from rouge_score import rouge_scorer
 
 
 
-st.title("VideoTLDR: Converting long videos to quick reads!")
+# st.title("VideoTLDR: Converting long videos to quick reads!")
 
 def get_summary(text):
     summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
