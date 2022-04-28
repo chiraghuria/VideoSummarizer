@@ -12,7 +12,6 @@ from pydub import AudioSegment
 from pydub.silence import split_on_silence
 import io
 import os
-import docsim 
 from rouge_score import rouge_scorer
 
 
