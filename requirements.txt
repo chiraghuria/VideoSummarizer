@@ -13,3 +13,4 @@ rouge-score
 youtube-search-python
 streamlit_option_menu
 ffmpeg-python
+ffmpeg
